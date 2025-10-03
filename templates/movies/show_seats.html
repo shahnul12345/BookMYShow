@@ -1,0 +1,266 @@
+{% load static %}
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{{ show.movie.title }} - Select Seats</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    body {
+      background: #f5f5f5;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      padding-bottom: 120px; /* space for floating panel */
+    }
+
+    /* Movie Header */
+    .movie-header {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      background: #0d6efd;
+      color: white;
+      padding: 1rem 2rem;
+      border-radius: 0.5rem;
+      margin-bottom: 1rem;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    }
+    .movie-header img {
+      width: 100px;
+      border-radius: 0.5rem;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+    }
+    .movie-header h2 {
+      margin: 0;
+      font-weight: 700;
+      font-size: 1.5rem;
+    }
+    .movie-header p {
+      margin: 0;
+      font-size: 0.95rem;
+      opacity: 0.9;
+    }
+
+    /* Screen Indicator */
+    .screen-label {
+      text-align: center;
+      font-weight: 600;
+      color: #495057;
+      margin-bottom: 1rem;
+    }
+
+    /* Seat Map */
+    #seat-map {
+      display: grid;
+      grid-template-columns: repeat(10, 50px);
+      gap: 12px;
+      justify-content: center;
+      margin-bottom: 1.5rem;
+      overflow-x: auto;
+      padding: 0 1rem;
+    }
+    .seat {
+      width: 50px;
+      height: 50px;
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      color: #495057;
+      background-color: #fff;
+      border: 2px solid #ced4da;
+      box-shadow: 0 3px 6px rgba(0,0,0,0.1);
+      user-select: none;
+    }
+    .seat:hover:not(.taken):not(.selected) {
+      background-color: #cfe2ff;
+      border-color: #0d6efd;
+      color: #0d6efd;
+      transform: scale(1.1);
+    }
+    .seat.taken {
+      background-color: #dee2e6;
+      border-color: #adb5bd;
+      color: #6c757d;
+      cursor: not-allowed;
+      box-shadow: none;
+    }
+    .seat.selected {
+      background-color: #0d6efd;
+      border-color: #0a58ca;
+      color: #fff;
+      box-shadow: 0 0 12px #0d6efd99;
+      transform: scale(1.1);
+    }
+
+    /* Legend */
+.legend {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap; /* allow wrapping on smaller screens */
+  gap: 1.5rem;     /* space between items */
+  margin-bottom: 6rem;
+  padding: 0 1rem; /* padding so it doesn't touch edges */
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-weight: 600;
+  color: #495057;
+  flex-shrink: 0; /* prevent shrinking too much */
+}
+
+.legend-color {
+  width: 32px;
+  height: 32px;
+  border-radius: 6px;
+  border: 2px solid transparent;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+}
+
+.legend-available { background-color: #fff; border: 2px solid #ced4da; }
+.legend-taken { background-color: #dee2e6; border: 2px solid #adb5bd; }
+.legend-selected { background-color: #0d6efd; border: 2px solid #0a58ca; }
+
+
+    /* Floating Panel */
+    .floating-panel {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      background-color: white;
+      border-top: 1px solid #dee2e6;
+      padding: 1rem 2rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: 0 -4px 10px rgba(0,0,0,0.1);
+      z-index: 1000;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+    }
+    .floating-panel button {
+      background-color: #ff3d00;
+      color: white;
+      font-weight: 600;
+      border: none;
+      padding: 0.6rem 1.2rem;
+      border-radius: 0.5rem;
+      transition: all 0.3s ease;
+    }
+    .floating-panel button:hover {
+      background-color: #e53935;
+      transform: scale(1.05);
+    }
+
+    @media (max-width: 576px) {
+      #seat-map { grid-template-columns: repeat(5, 45px); gap: 10px; }
+      .seat { width: 45px; height: 45px; font-size: 0.85rem; }
+      .floating-panel { flex-direction: column; text-align: center; }
+    }
+  </style>
+</head>
+<body class="container py-4">
+
+  <!-- Movie Header -->
+  <div class="movie-header">
+    {% if show.movie.poster %}
+      <img src="{{ show.movie.poster.url }}" alt="{{ show.movie.title }} poster">
+    {% else %}
+      <img src="{% static 'images/default-poster.jpg' %}" alt="No poster">
+    {% endif %}
+    <div>
+      <h2>{{ show.movie.title }}</h2>
+      <p>{{ show.start_time|date:"M d, Y, H:i" }}</p>
+    </div>
+  </div>
+
+  <!-- Screen Label -->
+  <div class="screen-label">Screen this way ⬇️</div>
+
+  <!-- Seat Map -->
+  <div id="seat-map" aria-label="Seat selection map"></div>
+
+  <!-- Legend -->
+  <div class="legend">
+    <div class="legend-item"><div class="legend-color legend-available"></div> Available</div>
+    <div class="legend-item"><div class="legend-color legend-selected"></div> Selected</div>
+    <div class="legend-item"><div class="legend-color legend-taken"></div> Taken</div>
+  </div>
+
+  <!-- Floating Panel -->
+  <div class="floating-panel">
+    <div>Seats: <span id="selected-seats">None</span> | Total: ₹<span id="total-price">0</span></div>
+    <button onclick="proceedBooking()">Proceed to Pay</button>
+  </div>
+
+  <script>
+    const showId = {{ show.id }};
+    const seatMapContainer = document.getElementById('seat-map');
+    const selectedSeatsEl = document.getElementById('selected-seats');
+    const totalPriceEl = document.getElementById('total-price');
+    const seatPrice = 200; // Change as needed
+
+    function fetchSeats() {
+      fetch(`/show/${showId}/seats/`)
+        .then(res => res.json())
+        .then(data => {
+          const taken = new Set(data.taken);
+          seatMapContainer.innerHTML = '';
+          for(let r=0; r<data.rows; r++){
+            for(let c=1; c<=data.cols; c++){
+              const code = String.fromCharCode(65+r) + c;
+              const seat = document.createElement('div');
+              seat.className = 'seat' + (taken.has(code) ? ' taken' : '');
+              seat.textContent = code;
+              seat.tabIndex = taken.has(code) ? -1 : 0;
+              seat.setAttribute('aria-label', `Seat ${code} ${taken.has(code) ? 'taken' : 'available'}`);
+              if(!taken.has(code)){
+                seat.onclick = () => toggleSeat(seat);
+                seat.onkeypress = e => {
+                  if(e.key==='Enter'||e.key===' ') { e.preventDefault(); toggleSeat(seat); }
+                };
+              }
+              seatMapContainer.appendChild(seat);
+            }
+          }
+        })
+        .catch(err => console.error(err));
+    }
+
+    function toggleSeat(seat) {
+      seat.classList.toggle('selected');
+      updateSummary();
+    }
+
+    function updateSummary() {
+      const selectedSeats = [...document.querySelectorAll('.seat.selected')].map(s=>s.textContent);
+      selectedSeatsEl.textContent = selectedSeats.length ? selectedSeats.join(", ") : "None";
+      totalPriceEl.textContent = selectedSeats.length * seatPrice;
+    }
+
+    function proceedBooking() {
+      const selectedSeats = [...document.querySelectorAll('.seat.selected')].map(s=>s.textContent);
+      if(selectedSeats.length === 0) {
+        alert("Please select at least one seat!");
+        return;
+      }
+      const params = new URLSearchParams();
+      params.append("seats", selectedSeats.join(","));
+      window.location.href = `/book/${showId}/?${params.toString()}`;
+    }
+
+    fetchSeats();
+  </script>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
+
+

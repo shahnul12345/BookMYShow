@@ -1,0 +1,108 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Movie Ticket</title>
+  <style>
+    body {
+      font-family: 'Arial', sans-serif;
+      background: #f5f5f5;
+      margin: 0;
+      padding: 20px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+    }
+
+    .ticket {
+      background: #fff;
+      border-radius: 15px;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+      max-width: 450px;
+      padding: 25px;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .ticket::before,
+    .ticket::after {
+      content: '';
+      position: absolute;
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      background: #f5f5f5;
+      top: 50%;
+      transform: translateY(-50%);
+      z-index: 1;
+    }
+
+    .ticket::before { left: -10px; }
+    .ticket::after { right: -10px; }
+
+    .poster {
+      max-width: 150px;
+      border-radius: 10px;
+      margin-bottom: 15px;
+    }
+
+    h2 {
+      color: #e50914;
+      margin: 0 0 10px 0;
+      font-size: 24px;
+    }
+
+    p {
+      margin: 6px 0;
+      font-size: 14px;
+      color: #333;
+    }
+
+    strong {
+      color: #000;
+    }
+
+    .transaction-box {
+      background: #e50914;
+      color: #fff;
+      font-weight: bold;
+      padding: 10px;
+      border-radius: 5px;
+      margin: 15px 0;
+    }
+
+    .qr {
+      margin-top: 20px;
+    }
+
+    .qr img {
+      width: 120px;
+      height: 120px;
+    }
+
+    .note {
+      font-size: 12px;
+      color: #777;
+      margin-top: 5px;
+    }
+  </style>
+</head>
+<body>
+  <div class="ticket">
+    <img src="{{ booking.show.movie.poster.url }}" alt="{{ booking.show.movie.title }}" class="poster">
+    <h2>{{ booking.show.movie.title }}</h2>
+    <p><strong>Showtime:</strong> {{ booking.show.start_time|date:"M d, Y, H:i" }}</p>
+    <p><strong>Seats:</strong> {{ booking.seats|join:", " }}</p>
+    <p><strong>Total Paid:</strong> ₹{{ booking.total_price }}</p>
+    <div class="transaction-box">
+      Transaction ID: {{ booking.transaction_id }}
+    </div>
+    <div class="qr">
+      <img src="data:image/png;base64,{{ qr_base64 }}" alt="QR Code">
+      <div class="note">Show this ticket at the counter</div>
+    </div>
+  </div>
+</body>
+</html>

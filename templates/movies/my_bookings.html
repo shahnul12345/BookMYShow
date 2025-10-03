@@ -1,0 +1,150 @@
+{% load static %}
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>My Bookings - MovieHub</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <style>
+    body {
+      background-color: #121212;
+      min-height: 100vh;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      color: #fff;
+      padding-top: 2rem;
+      padding-bottom: 3rem;
+    }
+
+    h2 {
+      font-weight: 700;
+      font-size: 2rem;
+      margin-bottom: 2rem;
+      text-align: center;
+      color: #e50914;
+      user-select: none;
+      text-shadow: 1px 1px 5px rgba(0,0,0,0.5);
+    }
+
+    .booking-item {
+      background: #1e1e1e;
+      border-radius: 1rem;
+      box-shadow: 0 6px 18px rgba(229, 9, 20, 0.2);
+      padding: 1.5rem 2rem;
+      margin-bottom: 1.5rem;
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    .booking-item:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 12px 28px rgba(229, 9, 20, 0.4);
+    }
+
+    .booking-item h5 {
+      font-weight: 700;
+      font-size: 1.4rem;
+      margin-bottom: 0.5rem;
+      color: #ffc107; /* accent color */
+    }
+
+    .booking-details p {
+      margin-bottom: 0.3rem;
+      font-size: 1rem;
+      color: #ccc;
+    }
+
+    .btn-download {
+      margin-top: 0.75rem;
+      font-weight: 600;
+      border-radius: 0.5rem;
+      padding: 0.5rem 1.2rem;
+      font-size: 0.95rem;
+      background-color: #e50914;
+      border: none;
+      color: #fff;
+      box-shadow: 0 4px 12px rgba(229, 9, 20, 0.4);
+      transition: background-color 0.3s ease, box-shadow 0.3s ease;
+    }
+    .btn-download:hover {
+      background-color: #b40610;
+      box-shadow: 0 6px 18px rgba(229, 9, 20, 0.6);
+      color: #fff;
+    }
+
+    .alert-info {
+      max-width: 480px;
+      margin: 3rem auto;
+      font-size: 1.1rem;
+      text-align: center;
+      color: #fff;
+      background-color: #1e1e1e;
+      border: none;
+      border-radius: 1rem;
+      padding: 1.5rem 2rem;
+      user-select: none;
+      box-shadow: 0 4px 12px rgba(229, 9, 20, 0.3);
+    }
+
+    .btn-back {
+      display: block;
+      max-width: 200px;
+      margin: 2rem auto 0;
+      font-weight: 600;
+      border-radius: 0.5rem;
+      padding: 0.6rem 1.2rem;
+      font-size: 1rem;
+      background-color: #ffc107;
+      color: #212529;
+      text-align: center;
+      box-shadow: 0 4px 12px rgba(255, 193, 7, 0.4);
+      transition: background-color 0.3s ease, box-shadow 0.3s ease;
+      text-decoration: none;
+    }
+    .btn-back:hover {
+      background-color: #e0a800;
+      box-shadow: 0 6px 18px rgba(224, 168, 0, 0.6);
+      color: #212529;
+    }
+
+    @media (max-width: 576px) {
+      .booking-item {
+        padding: 1rem 1.25rem;
+      }
+      h2 {
+        font-size: 1.75rem;
+      }
+      .btn-back {
+        max-width: 100%;
+      }
+    }
+  </style>
+</head>
+<body class="container">
+
+  <h2>🎟️ My Bookings</h2>
+
+  {% if bookings %}
+    <div class="list-group">
+      {% for booking in bookings %}
+      <div class="booking-item list-group-item">
+        <h5>{{ booking.show.movie.title }}</h5>
+        <div class="booking-details">
+          <p><strong>Showtime:</strong> {{ booking.show.start_time|date:"M d, Y, H:i" }}</p>
+          <p><strong>Seats:</strong> {{ booking.seats|join:", " }}</p>
+          <p><strong>Total Price:</strong> ₹{{ booking.total_price }}</p>
+        </div>
+        <a href="{% url 'movies:download_ticket' booking.id %}" class="btn btn-download" aria-label="Download ticket for {{ booking.show.movie.title }}">
+          Download Ticket
+        </a>
+      </div>
+      {% endfor %}
+    </div>
+  {% else %}
+    <div class="alert alert-info" role="alert">
+      You have no bookings yet.
+    </div>
+  {% endif %}
+
+  <a href="{% url 'movies:movie_list' %}" class="btn btn-back" aria-label="Back to movies list">⬅ Back to Movies</a>
+
+</body>
+</html>
